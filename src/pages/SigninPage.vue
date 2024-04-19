@@ -38,7 +38,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { api } from 'src/boot/axios'
 import { useRouter } from 'vue-router'
 
@@ -48,50 +48,44 @@ const password = ref('')
 const router = useRouter()
 const alertMsg = ref('false')
 
-onMounted(() => {
-  const authtoken = localStorage.getItem('token')
-  console.log('token', authtoken)
+const authtoken = localStorage.getItem('token')
+console.log('token', authtoken)
 
-  if (authtoken) {
-    checkToken(authtoken)
-  }
-})
-
-const checkToken = async (localToken) => {
+const checkToken = (localToken) => {
   try {
-    const response = await api.post('authToken', {
-      token: localToken
-    })
-    console.log('response axios', response)
-    console.log(response.data)
-    if (response.data.success) {
+    api.get('authToken', {
+      // token: localToken
+    }).then((response) => {
+      console.log('response axios', response)
+      console.log(response.data)
       router.push('home')
-      console.log('token', response.data.message)
-    } else {
-      console.error('error: token :', response.data.message)
-    }
+    }).catch((error) => {
+      console.error('Error token', error)
+    })
   } catch (error) {
-    console.error('Error token', error)
   }
 }
 
-const btnLogin = async () => {
+if (authtoken) {
+  checkToken(authtoken)
+}
+
+const btnLogin = () => {
   try {
-    const response = await api.post('signIn', {
+    console.log('Input Data : ' + email.value, password.value)
+    api.post('signIn', {
       email: email.value,
       password: password.value
-    })
-    console.log('response axios', response)
-    if (response.data.success) {
+    }).then((response) => {
+      console.log('response axios', response)
       localStorage.setItem('token', response.data.token)
       console.log('success login :', response.data.message, 'token : ', response.data.token)
       router.push('home')
-    } else {
-      console.error('Error: singin in :', response.data.message)
-    }
+    }).catch((error) => {
+      alertMsg.value = true
+      console.log('Error Sign In : ', error.response.data.messages)
+    })
   } catch (error) {
-    alertMsg.value = true
-    console.log('Error Sign In : ', error)
   }
 }
 </script>

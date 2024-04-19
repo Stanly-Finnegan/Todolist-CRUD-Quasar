@@ -18,6 +18,17 @@
     </template>
   </q-input>
   <p style="color: red;" >{{ errMessage.password }}</p>
+  <q-input v-model="Cpassword" :type="isCpwd ? 'password': 'text'" outlined label="Confirm Password">
+    <template
+    v-slot:append>
+      <q-icon
+    :name="isCpwd ? 'visibility_off' : 'visibility'"
+    class="cursor-pointer"
+    @click="isCpwd = !isCpwd"
+    />
+    </template>
+  </q-input>
+  <p style="color: red;" >{{ errMessage.cpassword }}</p>
 
   <div class="row">
     <q-btn class="col-md-auto q-px-xl q-py-sm" label="Sign Up" type="submit" color="primary"/>
@@ -34,35 +45,37 @@ import { api } from 'src/boot/axios'
 import { useRouter } from 'vue-router'
 
 const isPwd = ref(true)
+const isCpwd = ref(true)
 const name = ref('')
 const email = ref('')
 const password = ref('')
+const Cpassword = ref('')
 const router = useRouter()
 const errMessage = ref({
   name: '',
   email: '',
-  password: ''
+  password: '',
+  cpassword: ''
 })
 
-const btnSignUp = async () => {
-  try {
-    const response = await api.post('signUp', {
-      name: name.value,
-      email: email.value,
-      password: password.value
-    })
+const btnSignUp = () => {
+  api.post('signUp', {
+    name: name.value,
+    email: email.value,
+    password: password.value,
+    cpassword: Cpassword.value
+  }).then((response) => {
     console.log('response axios', response)
     if (response.data.success) {
       router.push('/')
       console.log('success register :', response.data.message)
-    } else {
-      // console.error('Error: register :', error.response.data.messages)
     }
-  } catch (error) {
+  }).catch((error) => {
     console.log('Error Register : ', error.response.data.messages)
     errMessage.value.name = error.response.data.messages.message.name
     errMessage.value.email = error.response.data.messages.message.email
     errMessage.value.password = error.response.data.messages.message.password
-  }
+    errMessage.value.cpassword = error.response.data.messages.message.cpassword
+  })
 }
 </script>

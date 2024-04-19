@@ -21,7 +21,8 @@ import { defineProps } from 'vue'
 import { api } from 'src/boot/axios'
 
 const emits = defineEmits([
-  'onClose'
+  'onClose',
+  'fetchData'
 ])
 
 const props = defineProps({
@@ -29,23 +30,22 @@ const props = defineProps({
   data: Object
 })
 
-const deleteItem = async () => {
+const deleteItem = () => {
   // console.log('ini UUID', props.data.uuid)
   emits('onClose')
-  try {
-    const response = await api.post('deleteData', {
-      uuid: props.data.uuid
-    })
-    console.log('response axios', response)
-    if (response.data.success) {
-      console.log('success delete list :', response.data.message)
-    } else {
-      console.error('failed delete list  :', response.data.message)
-    }
-  } catch (error) {
-    console.error('Delete Error', error)
-  }
 
-  location.reload()
+  api.delete('deleteData/' + props.data.uuid).then((response) => {
+    console.log('response axios', response)
+    emits('fetchData')
+    console.log('success delete list :', response.data.message)
+  }).catch((error) => {
+    console.error('Delete Error', error)
+  })
+  // const apiURL = 'deleteData/' + props.data.uuid
+  // console.log(apiURL)
+  // api.delete('deleteData/' + props.data.uuid).then(() => {
+  //   emits('fetchData')
+  //   alert('Berhasil Menghapus Data')
+  // })
 }
 </script>

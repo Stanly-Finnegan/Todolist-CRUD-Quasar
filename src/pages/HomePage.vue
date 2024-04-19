@@ -51,18 +51,18 @@
 
         <q-card-actions align="right" class="text-primary">
           <q-btn flat label="Cancel" v-close-popup />
-          <q-btn flat label="Add" @click="btnAdd" v-close-popup  />
+          <q-btn flat label="Add" @click="btnAdd"   />
         </q-card-actions>
       </q-card>
     </q-dialog>
 
-    <dialogDelete :dialogStatus="deletePrompt" :data="tempData" @onClose="deletePrompt=false" />
-    <dialogEdit :dialogStatus="editPrompt" :data="tempData" @onClose="editPrompt=false" />
+    <dialogDelete :dialogStatus="deletePrompt" :data="tempData" @onClose="deletePrompt=false" @fetchData="checkToken(authtoken)" />
+    <dialogEdit :dialogStatus="editPrompt" :data="tempData" @onClose="editPrompt=false" @fetchData="checkToken(authtoken)" />
 
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { api } from 'src/boot/axios'
 import dialogDelete from 'components/ComponentDeleteDialog.vue'
@@ -79,103 +79,104 @@ const tempData = ref([])
 
 const authtoken = localStorage.getItem('token')
 
-onMounted(() => {
-  checkToken(authtoken)
-})
-
-const btnAdd = async () => {
+const checkToken = (localToken) => {
   try {
-    const response = await api.post('addList', {
-      title: title.value,
-      description: description.value,
-      token: authtoken
-    })
-    console.log('response axios', response)
-    if (response.data.success) {
-      // localStorage.getItem('token', response.data.token)
-      console.log('success add list :', response.data.message, 'token : ', response.data.token)
-    } else {
-      console.error('failed add list :', response.data.message)
-    }
+    api.get('authToken')
+      .then((response) => {
+        console.log('response axios', response)
+        console.log(response.data)
+        if (response.data.success) {
+          // router.push('home')
+          fetchData(authtoken)
+          console.log('Home token :', response.data.message)
+        } else {
+          console.error('error: token :', response.data.message)
+          router.push('/')
+        }
+      }).catch((error) => {
+        console.error('Error token', error)
+      })
   } catch (error) {
-    console.log('Error add list : ', error)
   }
-
-  location.reload()
 }
 
-const btnDeleteAlert = async (data) => {
+checkToken(authtoken)
+
+const btnAdd = () => {
+  try {
+    api.post('addList', {
+      title: title.value,
+      description: description.value
+      // token: authtoken
+    }).then((response) => {
+      console.log('response axios', response)
+      // localStorage.getItem('token', response.data.token)
+      checkToken(authtoken)
+      console.log('success add list :', response.data.message, 'token : ', response.data.token)
+      addPrompt.value = false
+      title.value = ''
+      description.value = ''
+      console.log('This is Addprompt' + addPrompt.value)
+    }).catch((error) => {
+      console.log('Error add list : ', error)
+    })
+  } catch (error) {
+  }
+}
+
+const btnDeleteAlert = (data) => {
   // console.log('Data: ', data)
   deletePrompt.value = true
   tempData.value = data
 }
-const btnEditAlert = async (data) => {
+const btnEditAlert = (data) => {
   // console.log('Data: ', data)
   editPrompt.value = true
   tempData.value = data
 }
 
-const fetchData = async (localToken) => {
+const fetchData = (localToken) => {
   try {
-    const response = await api.post('fetchData', {
+    api.post('fetchData', {
       token: localToken
+    }).then((response) => {
+      console.log('response axios', response)
+      console.log(response.data)
+      if (response.data.success) {
+        // router.push('home')
+        console.log('Fetch data Status :', response.data.message)
+        fetch.value = response.data.result
+        console.log('result: ', response.data.result)
+      } else {
+        console.error('Fetch Failed :', response.data.message)
+      }
+    }).catch((error) => {
+      console.error('Fetch Error', error)
     })
-    console.log('response axios', response)
-    console.log(response.data)
-    if (response.data.success) {
-      // router.push('home')
-      console.log('Fetch data Status :', response.data.message)
-      fetch.value = response.data.result
-      console.log('result: ', response.data.result)
-    } else {
-      console.error('Fetch Failed :', response.data.message)
-    }
   } catch (error) {
-    console.error('Fetch Error', error)
   }
 }
 
-const checkToken = async (localToken) => {
+const deleteToken = (localToken) => {
   try {
-    const response = await api.post('authToken', {
-      token: localToken
+    api.delete('signOut').then((response) => {
+      console.log('response axios', response)
+      if (response.data.success) {
+        router.push('/')
+        localStorage.removeItem('token')
+        console.log('token', response.data.message)
+      } else {
+        console.error('error: token :', response.data.message)
+      }
+    }).catch((error) => {
+      console.error('Error token', error)
     })
-    console.log('response axios', response)
-    console.log(response.data)
-    if (response.data.success) {
-      // router.push('home')
-      fetchData(authtoken)
-      console.log('Home token :', response.data.message)
-    } else {
-      console.error('error: token :', response.data.message)
-      router.push('/')
-    }
   } catch (error) {
-    console.error('Error token', error)
   }
 }
 
-const deleteToken = async (localToken) => {
-  try {
-    const response = await api.post('signOut', {
-      token: localToken
-    })
-    console.log('response axios', response)
-    if (response.data.success) {
-      router.push('/')
-      localStorage.removeItem('token')
-      console.log('token', response.data.message)
-    } else {
-      console.error('error: token :', response.data.message)
-    }
-  } catch (error) {
-    console.error('Error token', error)
-  }
-}
-
-const btnLogout = async () => {
+const btnLogout = () => {
   console.log('Home token', authtoken)
-
   if (authtoken) {
     deleteToken(authtoken)
   }

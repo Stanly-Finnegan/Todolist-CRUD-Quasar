@@ -23,8 +23,10 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { api } from 'src/boot/axios'
+
 const emits = defineEmits([
-  'onClose'
+  'onClose',
+  'fetchData'
 ])
 
 const props = defineProps({
@@ -45,25 +47,22 @@ watch(() => props.dialogStatus, (newVal) => {
   }
 })
 
-const editItem = async () => {
+const editItem = () => {
   console.log('ini UUID', props.data.uuid)
   emits('onClose')
   try {
-    const response = await api.post('editData', {
+    api.put('updateData', {
       uuid: props.data.uuid,
       title: title.value,
       desc: description.value
-    })
-    console.log('response axios', response)
-    if (response.data.success) {
+    }).then((response) => {
+      console.log('response axios', response)
+      emits('fetchData')
       console.log('success edit list :', response.data.message)
-    } else {
-      console.error('failed edit list  :', response.data.message)
-    }
+    })
   } catch (error) {
     console.error('Edit Error', error)
   }
-
-  location.reload()
 }
+
 </script>
