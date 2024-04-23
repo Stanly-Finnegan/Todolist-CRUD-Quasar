@@ -86,15 +86,15 @@ const checkToken = (localToken) => {
         console.log('response axios', response)
         console.log(response.data)
         if (response.data.success) {
-          // router.push('home')
+          // router.push('/')
           fetchData(authtoken)
           console.log('Home token :', response.data.message)
         } else {
           console.error('error: token :', response.data.message)
-          router.push('/')
         }
       }).catch((error) => {
         console.error('Error token', error)
+        router.push('/')
       })
   } catch (error) {
   }

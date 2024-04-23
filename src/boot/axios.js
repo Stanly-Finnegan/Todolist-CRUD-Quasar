@@ -18,7 +18,7 @@ const axiosConfig = {
     }
     console.log(data)
     if (headers.Accept === '*/*') {
-      headers['Content-Type'] = 'application/x-www-form-urlencod'
+      headers['Content-Type'] = 'application/x-www-form-urlencoded'
 
       const formData = Object.keys(data).map(key => encodeURIComponent(key) + '=' + encodeURIComponent(data[key])).join('&')
 
@@ -30,6 +30,7 @@ const axiosConfig = {
           for (const indexArray in data[index]) {
             objFormData.append(index + '[]', data[index][indexArray])
           }
+        } else {
           objFormData.append(index, data[index])
         }
       }
